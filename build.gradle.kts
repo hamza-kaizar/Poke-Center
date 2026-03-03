@@ -4,6 +4,8 @@ plugins {
 	id("org.springframework.boot") version "4.1.0-SNAPSHOT"
 	id("io.spring.dependency-management") version "1.1.7"
 	kotlin("plugin.jpa") version "2.3.10"
+	id("org.jlleitschuh.gradle.ktlint") version "14.0.1"
+	jacoco
 }
 
 group = "com.pokemon"
@@ -37,6 +39,7 @@ dependencies {
 kotlin {
 	compilerOptions {
 		freeCompilerArgs.addAll("-Xjsr305=strict", "-Xannotation-default-target=param-property")
+		jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_25)
 	}
 }
 
@@ -48,4 +51,68 @@ allOpen {
 
 tasks.withType<Test> {
 	useJUnitPlatform()
+}
+
+ktlint {
+	version.set("1.8.0")
+	outputToConsole.set(true)
+	coloredOutput.set(true)
+	ignoreFailures.set(false)
+}
+
+tasks.register("format") {
+	dependsOn("ktlintFormat")
+	description = "Format code with KtLint"
+}
+
+tasks.register("lint") {
+	dependsOn("ktlintCheck")
+	description = "Check code style with KtLint"
+}
+
+jacoco {
+	toolVersion = "0.8.14"
+}
+
+tasks.test {
+	finalizedBy("jacocoTestReport")
+}
+
+tasks.jacocoTestReport {
+	dependsOn(tasks.test)
+	classDirectories.setFrom(
+		files(
+			classDirectories.files.map {
+				fileTree(it) { exclude("**/config/**", "**/dto/**", "**/*Kt.class") }
+			},
+		),
+	)
+}
+
+tasks.jacocoTestCoverageVerification {
+	classDirectories.setFrom(
+		files(
+			classDirectories.files.map {
+				fileTree(it) { exclude("**/config/**", "**/dto/**", "**/*Kt.class") }
+			},
+		),
+	)
+	violationRules {
+		rule {
+			element = "CLASS"
+			limit {
+				minimum = "0.75".toBigDecimal()
+			}
+		}
+	}
+}
+
+tasks.register("checkCoverage") {
+	dependsOn("jacocoTestCoverageVerification")
+	description = "Verify code coverage meets minimum threshold"
+}
+
+tasks.register("quality") {
+	dependsOn("lint", "checkCoverage")
+	description = "Run all quality checks (linting + coverage)"
 }
