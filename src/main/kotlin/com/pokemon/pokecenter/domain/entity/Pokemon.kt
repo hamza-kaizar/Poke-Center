@@ -16,4 +16,9 @@ data class Pokemon(
 	val health: Health,
 	val status: Status = Status.ARRIVED,
 	var arrivedAt: LocalDateTime = LocalDateTime.now(),
-)
+) {
+	fun startHealing(): Pokemon {
+		require(status == Status.ARRIVED) { "Can only heal arrived pokemon" }
+		return copy(status = Status.HEALING)
+	}
+}

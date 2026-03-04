@@ -161,4 +161,41 @@ class PokemonTest {
 			"Should have the correct error message for invalid current health",
 		)
 	}
+
+	@Test
+	fun `should start healing when pokemon is arrived`() {
+		// Arrange
+		val pokemon =
+			Pokemon(
+				name = "Pikachu",
+				trainerName = "Ash",
+				health = Health(current = 50, maximum = 100),
+				status = Status.ARRIVED,
+			)
+
+		// Act
+		val healedPokemon = pokemon.startHealing()
+
+		// Assert
+		assertEquals(Status.HEALING, healedPokemon.status, "Pokemon should be in HEALING status")
+	}
+
+	@Test
+	fun `should not start healing when pokemon is not arrived`() {
+		// Arrange
+		val pokemon =
+			Pokemon(
+				name = "Pikachu",
+				trainerName = "Ash",
+				health = Health(current = 50, maximum = 100),
+				status = Status.HEALED,
+			)
+
+		// Act & Assert
+		try {
+			pokemon.startHealing()
+		} catch (e: IllegalArgumentException) {
+			assertEquals("Can only heal arrived pokemon", e.message)
+		}
+	}
 }
