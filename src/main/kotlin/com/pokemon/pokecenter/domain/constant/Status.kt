@@ -1,4 +1,4 @@
-package com.pokemon.pokecenter.domain.value
+package com.pokemon.pokecenter.domain.constant
 
 enum class Status {
 	ARRIVED,

@@ -1,7 +1,7 @@
 package com.pokemon.pokecenter.domain.entity
 
+import com.pokemon.pokecenter.domain.constant.Status
 import com.pokemon.pokecenter.domain.value.Health
-import com.pokemon.pokecenter.domain.value.Status
 import jakarta.validation.Valid
 import jakarta.validation.constraints.NotBlank
 import java.time.LocalDateTime
