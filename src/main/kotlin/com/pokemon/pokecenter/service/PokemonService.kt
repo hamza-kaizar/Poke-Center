@@ -2,15 +2,19 @@ package com.pokemon.pokecenter.service
 
 import com.pokemon.pokecenter.domain.entity.Pokemon
 import com.pokemon.pokecenter.domain.value.Health
+import com.pokemon.pokecenter.port.input.HealPokemonUseCase
 import com.pokemon.pokecenter.port.input.RegisterPokemonCommand
 import com.pokemon.pokecenter.port.input.RegisterPokemonUseCase
+import com.pokemon.pokecenter.port.output.LoadPokemonPort
 import com.pokemon.pokecenter.port.output.SavePokemonPort
 import org.springframework.stereotype.Service
 
 @Service
 class PokemonService(
+	private val loadPokemon: LoadPokemonPort,
 	private val savePokemon: SavePokemonPort,
-) : RegisterPokemonUseCase {
+) : RegisterPokemonUseCase,
+	HealPokemonUseCase {
 	override fun register(command: RegisterPokemonCommand): Pokemon {
 		val health = Health(current = command.currentHealth, maximum = command.maximumHealth)
 		val pokemon =
@@ -20,5 +24,11 @@ class PokemonService(
 				health = health,
 			)
 		return savePokemon.save(pokemon)
+	}
+
+	override fun startHealing(pokemonId: Long): Pokemon {
+		val pokemon = loadPokemon.loadById(pokemonId)
+		val healing = pokemon.startHealing()
+		return savePokemon.save(healing)
 	}
 }
