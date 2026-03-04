@@ -25,4 +25,10 @@ data class Health(
 		val newHealth = (current + amount).coerceAtMost(maximum)
 		return copy(current = newHealth)
 	}
+
+	fun damage(amount: Int): Health {
+		require(amount > 0) { "Damage amount must be positive" }
+		val newHealth = (current - amount).coerceAtLeast(0)
+		return copy(current = newHealth)
+	}
 }

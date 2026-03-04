@@ -94,6 +94,26 @@ class HealthTest {
 		}
 	}
 
+	@ParameterizedTest(name = "{index}: {0}")
+	@MethodSource("damageScenarios")
+	fun `should verify damage logic`(
+		name: String,
+		initialCurrent: Int,
+		maximum: Int,
+		damageAmount: Int,
+		expectedCurrent: Int,
+		expectException: String,
+	) {
+		val health = Health(current = initialCurrent, maximum = maximum)
+		if (expectException.isBlank()) {
+			val damagedHealth = health.damage(damageAmount)
+			assertEquals(expectedCurrent, damagedHealth.current)
+		} else {
+			assertThrows<IllegalArgumentException> { health.damage(damageAmount) }
+				.apply { assertEquals(expectException, message) }
+		}
+	}
+
 	@Test
 	fun `should cover data class generated methods`() {
 		val h1 = Health(50, 100)
@@ -131,11 +151,11 @@ class HealthTest {
 		val expectedPercentage: Int,
 	)
 
-	private data class HealingScenario(
+	private data class HealthChangeScenario(
 		val name: String,
 		val initialCurrent: Int,
 		val maximum: Int,
-		val healAmount: Int,
+		val changeAmount: Int,
 		val expectedCurrent: Int,
 		val expectException: String,
 	)
@@ -269,35 +289,35 @@ class HealthTest {
 		@JvmStatic
 		fun healingScenarios(): Stream<Arguments> =
 			listOf(
-				HealingScenario(
+				HealthChangeScenario(
 					name = "Healing with positive amount should increase current health",
 					initialCurrent = 50,
 					maximum = 100,
-					healAmount = 20,
+					changeAmount = 20,
 					expectedCurrent = 70,
 					expectException = "",
 				),
-				HealingScenario(
+				HealthChangeScenario(
 					name = "Healing should not exceed maximum health",
 					initialCurrent = 90,
 					maximum = 100,
-					healAmount = 20,
+					changeAmount = 20,
 					expectedCurrent = 100,
 					expectException = "",
 				),
-				HealingScenario(
+				HealthChangeScenario(
 					name = "Healing with zero amount should throw exception",
 					initialCurrent = 50,
 					maximum = 100,
-					healAmount = 0,
+					changeAmount = 0,
 					expectedCurrent = 50,
 					expectException = "Healing amount must be positive",
 				),
-				HealingScenario(
+				HealthChangeScenario(
 					name = "Healing with negative amount should throw exception",
 					initialCurrent = 50,
 					maximum = 100,
-					healAmount = -10,
+					changeAmount = -10,
 					expectedCurrent = 50,
 					expectException = "Healing amount must be positive",
 				),
@@ -306,7 +326,53 @@ class HealthTest {
 					it.name,
 					it.initialCurrent,
 					it.maximum,
-					it.healAmount,
+					it.changeAmount,
+					it.expectedCurrent,
+					it.expectException,
+				)
+			}.stream()
+
+		@JvmStatic
+		fun damageScenarios(): Stream<Arguments> =
+			listOf(
+				HealthChangeScenario(
+					name = "Damage with positive amount should decrease current health",
+					initialCurrent = 50,
+					maximum = 100,
+					changeAmount = 20,
+					expectedCurrent = 30,
+					expectException = "",
+				),
+				HealthChangeScenario(
+					name = "Damage should not reduce health below zero",
+					initialCurrent = 10,
+					maximum = 100,
+					changeAmount = 20,
+					expectedCurrent = 0,
+					expectException = "",
+				),
+				HealthChangeScenario(
+					name = "Damage with zero amount should throw exception",
+					initialCurrent = 50,
+					maximum = 100,
+					changeAmount = 0,
+					expectedCurrent = 50,
+					expectException = "Damage amount must be positive",
+				),
+				HealthChangeScenario(
+					name = "Damage with negative amount should throw exception",
+					initialCurrent = 50,
+					maximum = 100,
+					changeAmount = -10,
+					expectedCurrent = 50,
+					expectException = "Damage amount must be positive",
+				),
+			).map {
+				Arguments.of(
+					it.name,
+					it.initialCurrent,
+					it.maximum,
+					it.changeAmount,
 					it.expectedCurrent,
 					it.expectException,
 				)
