@@ -19,48 +19,55 @@ class PokemonServiceTest {
 
 	@Test
 	fun `register should create and save pokemon`() {
+		val name = "Pikachu"
+		val trainerName = "Ash"
+		val health = Health(current = 80, maximum = 100)
 		val command =
 			RegisterPokemonCommand(
-				name = "Pikachu",
-				trainerName = "Ash",
-				currentHealth = 80,
-				maximumHealth = 100,
+				name = name,
+				trainerName = trainerName,
+				currentHealth = health.current,
+				maximumHealth = health.maximum,
 			)
 		val saved =
 			Pokemon(
 				id = 1,
-				name = "Pikachu",
-				trainerName = "Ash",
-				health = Health(80, 100),
+				name = name,
+				trainerName = trainerName,
+				health = health,
 			)
 
 		every { savePort.save(any()) } returns saved
 
 		val result = service.register(command)
 
-		assertEquals("Pikachu", result.name)
-		assertEquals(1, result.id)
+		assertEquals(name, result.name)
+		assertEquals(saved.id, result.id)
 		verify { savePort.save(any()) }
 	}
 
 	@Test
 	fun `startHealing should load, start healing and save pokemon`() {
+		val name = "Bulbasaur"
+		val trainerName = "Misty"
+		val health = Health(current = 80, maximum = 100)
 		val pokemon =
 			Pokemon(
 				id = 1,
-				name = "Bulbasaur",
-				trainerName = "Misty",
-				health = Health(50, 100),
+				name = name,
+				trainerName = trainerName,
+				health = health,
 			)
-		val healingPokemon = pokemon.copy(health = Health(50, 100))
+		val healingPokemon = pokemon.copy(status = Status.HEALING)
 
 		every { loadPort.loadById(1) } returns pokemon
 		every { savePort.save(any()) } returns healingPokemon
 
 		val result = service.startHealing(1)
 
-		assertEquals("Bulbasaur", result.name)
-		assertEquals(1, result.id)
+		assertEquals(pokemon.name, result.name)
+		assertEquals(pokemon.id, result.id)
+		assertEquals(Status.HEALING, result.status)
 		verify { loadPort.loadById(1) }
 		verify { savePort.save(any()) }
 	}
