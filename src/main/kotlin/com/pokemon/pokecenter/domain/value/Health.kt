@@ -10,4 +10,7 @@ data class Health(
 	val current: Int,
 	@Min(value = 1, message = "Maximum health must be positive")
 	val maximum: Int,
-)
+) {
+	val isHealthy: Boolean
+		get() = current == maximum
+}

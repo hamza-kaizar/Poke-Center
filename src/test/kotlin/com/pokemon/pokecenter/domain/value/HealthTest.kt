@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Assertions.assertNotEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertAll
+import kotlin.test.assertFalse
 
 class HealthTest {
 	private val validator: Validator = Validation.buildDefaultValidatorFactory().validator
@@ -60,6 +61,18 @@ class HealthTest {
 		val messages = violations.map { it.message }
 		assertTrue(messages.contains("Current health must be positive or zero"))
 		assertTrue(messages.contains("Maximum health must be positive"))
+	}
+
+	@Test
+	fun `should be unhealthy when current health less than maximum`() {
+		val health = Health(current = 90, maximum = 100)
+		assertFalse(health.isHealthy)
+	}
+
+	@Test
+	fun `should be healthy when current health equals maximum`() {
+		val health = Health(current = 100, maximum = 100)
+		assertTrue(health.isHealthy)
 	}
 
 	@Test
