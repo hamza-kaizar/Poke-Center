@@ -1,5 +1,6 @@
 package com.pokemon.pokecenter.domain.entity
 
+import com.pokemon.pokecenter.domain.value.Health
 import jakarta.validation.ConstraintViolation
 import jakarta.validation.Validation
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -17,6 +18,7 @@ class PokemonTest {
 		// Arrange
 		val pokemonName = "Pikachu"
 		val trainerName = "Ash"
+		val health = Health(current = 50, maximum = 100)
 		val beforeCreation = LocalDateTime.now()
 
 		// Act
@@ -24,6 +26,7 @@ class PokemonTest {
 			Pokemon.create(
 				name = pokemonName,
 				trainerName = trainerName,
+				health = health,
 			)
 		val afterCreation = LocalDateTime.now()
 
@@ -45,9 +48,17 @@ class PokemonTest {
 	@Test
 	fun `should not create pokemon without name`() {
 		// Arrange
-		val pokemon = Pokemon(name = "", trainerName = "Ash")
+		val pokemonName = ""
+		val trainerName = "Ash"
+		val health = Health(current = 50, maximum = 100)
 
 		// Act
+		val pokemon =
+			Pokemon.create(
+				name = pokemonName,
+				trainerName = trainerName,
+				health = health,
+			)
 		val violations: Set<ConstraintViolation<Pokemon>> = validator.validate(pokemon)
 
 		// Assert
@@ -64,9 +75,17 @@ class PokemonTest {
 	@Test
 	fun `should not create pokemon without trainer name`() {
 		// Arrange
-		val pokemon = Pokemon(name = "Pikachu", trainerName = "")
+		val pokemonName = "Pikachu"
+		val trainerName = ""
+		val health = Health(current = 50, maximum = 100)
 
 		// Act
+		val pokemon =
+			Pokemon.create(
+				name = pokemonName,
+				trainerName = trainerName,
+				health = health,
+			)
 		val violations: Set<ConstraintViolation<Pokemon>> = validator.validate(pokemon)
 
 		// Assert
@@ -83,9 +102,17 @@ class PokemonTest {
 	@Test
 	fun `should not create pokemon without name or trainer name`() {
 		// Arrange
-		val pokemon = Pokemon(name = "", trainerName = "")
+		val pokemonName = ""
+		val trainerName = ""
+		val health = Health(current = 50, maximum = 100)
 
 		// Act
+		val pokemon =
+			Pokemon.create(
+				name = pokemonName,
+				trainerName = trainerName,
+				health = health,
+			)
 		val violations: Set<ConstraintViolation<Pokemon>> = validator.validate(pokemon)
 
 		// Assert
@@ -103,6 +130,33 @@ class PokemonTest {
 			"Trainer name must not be blank",
 			trainerNameViolation?.message,
 			"Should have the correct error message for blank trainerName",
+		)
+	}
+
+	@Test
+	fun `should not create pokemon with invalid health`() {
+		// Arrange
+		val pokemonName = "Pikachu"
+		val trainerName = "Ash"
+		val health = Health(current = -10, maximum = 100)
+
+		// Act
+		val pokemon =
+			Pokemon.create(
+				name = pokemonName,
+				trainerName = trainerName,
+				health = health,
+			)
+		val violations: Set<ConstraintViolation<Pokemon>> = validator.validate(pokemon)
+
+		// Assert
+		assertFalse(violations.isEmpty(), "Should have validation violations for invalid health")
+		val healthViolation = violations.find { it.propertyPath.toString() == "health.current" }
+		assertNotNull(healthViolation, "Should have a violation for the health.current field")
+		assertEquals(
+			"Current health must be positive or zero",
+			healthViolation?.message,
+			"Should have the correct error message for invalid current health",
 		)
 	}
 }
