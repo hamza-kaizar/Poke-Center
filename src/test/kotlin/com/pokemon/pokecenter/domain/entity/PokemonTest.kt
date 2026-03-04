@@ -1,6 +1,7 @@
 package com.pokemon.pokecenter.domain.entity
 
 import com.pokemon.pokecenter.domain.value.Health
+import com.pokemon.pokecenter.domain.value.Status
 import jakarta.validation.ConstraintViolation
 import jakarta.validation.Validation
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -34,6 +35,7 @@ class PokemonTest {
 		assertNotNull(pokemon)
 		assertEquals(pokemonName, pokemon.name)
 		assertEquals(trainerName, pokemon.trainerName)
+		assertEquals(Status.ARRIVED, pokemon.status)
 		assertNotNull(pokemon.arrivedAt)
 
 		// Verify arrivedAt is set to current time (within 1 second tolerance)
