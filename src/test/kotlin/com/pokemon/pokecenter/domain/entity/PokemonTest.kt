@@ -235,4 +235,42 @@ class PokemonTest {
 			assertEquals("Can only apply to pokemon in healing status", e.message)
 		}
 	}
+
+	@Test
+	fun `should complete healing when pokemon is in healing status`() {
+		// Arrange
+		val pokemon =
+			Pokemon(
+				name = "Pikachu",
+				trainerName = "Ash",
+				health = Health(current = 80, maximum = 100),
+				status = Status.HEALING,
+			)
+
+		// Act
+		val healedPokemon = pokemon.completeHealing()
+
+		// Assert
+		assertEquals(100, healedPokemon.health.current, "Current health should be set to maximum")
+		assertEquals(Status.HEALED, healedPokemon.status, "Pokemon should be in HEALED status")
+	}
+
+	@Test
+	fun `should not complete healing when pokemon is not in healing status`() {
+		// Arrange
+		val pokemon =
+			Pokemon(
+				name = "Pikachu",
+				trainerName = "Ash",
+				health = Health(current = 80, maximum = 100),
+				status = Status.ARRIVED,
+			)
+
+		// Act & Assert
+		try {
+			pokemon.completeHealing()
+		} catch (e: IllegalArgumentException) {
+			assertEquals("Must be in healing status to complete healing", e.message)
+		}
+	}
 }

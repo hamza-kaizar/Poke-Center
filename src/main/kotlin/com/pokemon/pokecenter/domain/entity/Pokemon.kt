@@ -26,4 +26,12 @@ data class Pokemon(
 		require(status == Status.HEALING) { "Can only apply to pokemon in healing status" }
 		return copy(health = health.heal(amount))
 	}
+
+	fun completeHealing(): Pokemon {
+		require(status == Status.HEALING) { "Must be in healing status to complete healing" }
+		return copy(
+			health = health.copy(current = health.maximum),
+			status = Status.HEALED,
+		)
+	}
 }
