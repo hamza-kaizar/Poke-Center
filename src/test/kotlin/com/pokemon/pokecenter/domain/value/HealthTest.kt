@@ -46,6 +46,13 @@ class HealthTest {
 	}
 
 	@Test
+	fun `should violate ratio constraint when current exceeds maximum`() {
+		val health = Health(current = 101, maximum = 100)
+		val violations = validator.validate(health)
+		assertTrue(violations.any { it.message == "Current health cannot exceed maximum health" })
+	}
+
+	@Test
 	fun `should violate constraints when multiple fields are invalid`() {
 		val health = Health(current = -1, maximum = 0)
 		val violations = validator.validate(health)

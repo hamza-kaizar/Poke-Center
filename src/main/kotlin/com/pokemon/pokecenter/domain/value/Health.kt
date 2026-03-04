@@ -1,8 +1,10 @@
 package com.pokemon.pokecenter.domain.value
 
+import com.pokemon.pokecenter.domain.validation.ValidHealthRatio
 import jakarta.validation.constraints.Min
 import jakarta.validation.constraints.PositiveOrZero
 
+@ValidHealthRatio
 data class Health(
 	@PositiveOrZero(message = "Current health must be positive or zero")
 	val current: Int,
