@@ -7,72 +7,46 @@ import org.junit.jupiter.api.Assertions.assertNotEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertAll
-import kotlin.test.assertFalse
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.Arguments
+import org.junit.jupiter.params.provider.MethodSource
+import java.util.stream.Stream
 
 class HealthTest {
 	private val validator: Validator = Validation.buildDefaultValidatorFactory().validator
 
-	@Test
-	fun `should have no violations for valid health`() {
-		val health = Health(current = 50, maximum = 100)
+	@ParameterizedTest(name = "{index}: {0}")
+	@MethodSource("validationScenarios")
+	fun `should validate health constraints`(
+		name: String,
+		current: Int,
+		maximum: Int,
+		expectedCount: Int,
+		expectedMessages: List<String>,
+	) {
+		val health = Health(current = current, maximum = maximum)
 		val violations = validator.validate(health)
-		assertTrue(violations.isEmpty())
-	}
 
-	@Test
-	fun `should violate constraints when current health is negative`() {
-		val health = Health(current = -1, maximum = 100)
-		val violations = validator.validate(health)
+		assertEquals(expectedCount, violations.size)
 
 		val messages = violations.map { it.message }
-		assertTrue(messages.contains("Current health must be positive or zero"))
+		expectedMessages.forEach { expectedMessage ->
+			if (expectedMessage.isNotBlank()) {
+				assertTrue(messages.contains(expectedMessage.trim()), "Expected violation message: '$expectedMessage'")
+			}
+		}
 	}
 
-	@Test
-	fun `should violate constraints when maximum health is negative`() {
-		val health = Health(current = 0, maximum = -1)
-		val violations = validator.validate(health)
-
-		val messages = violations.map { it.message }
-		assertTrue(messages.contains("Maximum health must be positive"))
-	}
-
-	@Test
-	fun `should violate constraints when maximum health is 0`() {
-		val health = Health(current = 0, maximum = 0)
-		val violations = validator.validate(health)
-
-		val messages = violations.map { it.message }
-		assertTrue(messages.contains("Maximum health must be positive"))
-	}
-
-	@Test
-	fun `should violate ratio constraint when current exceeds maximum`() {
-		val health = Health(current = 101, maximum = 100)
-		val violations = validator.validate(health)
-		assertTrue(violations.any { it.message == "Current health cannot exceed maximum health" })
-	}
-
-	@Test
-	fun `should violate constraints when multiple fields are invalid`() {
-		val health = Health(current = -1, maximum = 0)
-		val violations = validator.validate(health)
-
-		val messages = violations.map { it.message }
-		assertTrue(messages.contains("Current health must be positive or zero"))
-		assertTrue(messages.contains("Maximum health must be positive"))
-	}
-
-	@Test
-	fun `should be unhealthy when current health less than maximum`() {
-		val health = Health(current = 90, maximum = 100)
-		assertFalse(health.isHealthy)
-	}
-
-	@Test
-	fun `should be healthy when current health equals maximum`() {
-		val health = Health(current = 100, maximum = 100)
-		assertTrue(health.isHealthy)
+	@ParameterizedTest(name = "{index}: {0}")
+	@MethodSource("healthyCheckScenarios")
+	fun `should verify healthy check`(
+		name: String,
+		current: Int,
+		maximum: Int,
+		expectedIsHealthy: Boolean,
+	) {
+		val health = Health(current = current, maximum = maximum)
+		assertEquals(expectedIsHealthy, health.isHealthy)
 	}
 
 	@Test
@@ -88,5 +62,97 @@ class HealthTest {
 			{ assertTrue(h1.toString().contains("current=50")) },
 			{ assertEquals(60, h3.current) },
 		)
+	}
+
+	private data class ValidationScenario(
+		val name: String,
+		val current: Int,
+		val maximum: Int,
+		val expectedCount: Int,
+		val expectedMessages: List<String> = emptyList(),
+	)
+
+	private data class HealthyCheckScenario(
+		val name: String,
+		val current: Int,
+		val maximum: Int,
+		val expectedIsHealthy: Boolean,
+	)
+
+	companion object {
+		@JvmStatic
+		fun validationScenarios(): Stream<Arguments> =
+			listOf(
+				ValidationScenario(
+					name = "Valid health should have no violations",
+					current = 50,
+					maximum = 100,
+					expectedCount = 0,
+				),
+				ValidationScenario(
+					name = "Current health cannot be negative",
+					current = -1,
+					maximum = 100,
+					expectedCount = 1,
+					expectedMessages = listOf("Current health must be positive or zero"),
+				),
+				ValidationScenario(
+					name = "Maximum health must be positive",
+					current = 0,
+					maximum = 0,
+					expectedCount = 1,
+					expectedMessages = listOf("Maximum health must be positive"),
+				),
+				ValidationScenario(
+					name = "Maximum health cannot be negative",
+					current = 0,
+					maximum = -1,
+					expectedCount = 2,
+					expectedMessages =
+						listOf(
+							"Maximum health must be positive",
+							"Current health cannot exceed maximum health",
+						),
+				),
+				ValidationScenario(
+					name = "Current health cannot exceed maximum",
+					current = 110,
+					maximum = 100,
+					expectedCount = 1,
+					expectedMessages = listOf("Current health cannot exceed maximum health"),
+				),
+				ValidationScenario(
+					name = "Multiple field failures: negative current and zero maximum",
+					current = -5,
+					maximum = 0,
+					expectedCount = 2,
+					expectedMessages =
+						listOf(
+							"Current health must be positive or zero",
+							"Maximum health must be positive",
+						),
+				),
+			).map {
+				Arguments.of(it.name, it.current, it.maximum, it.expectedCount, it.expectedMessages)
+			}.stream()
+
+		@JvmStatic
+		fun healthyCheckScenarios(): Stream<Arguments> =
+			listOf(
+				HealthyCheckScenario(
+					name = "Unhealthy when current health is less than maximum",
+					current = 90,
+					maximum = 100,
+					expectedIsHealthy = false,
+				),
+				HealthyCheckScenario(
+					name = "Healthy when current health equals maximum",
+					current = 100,
+					maximum = 100,
+					expectedIsHealthy = true,
+				),
+			).map {
+				Arguments.of(it.name, it.current, it.maximum, it.expectedIsHealthy)
+			}.stream()
 	}
 }
