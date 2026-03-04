@@ -19,7 +19,7 @@ class HealthTest {
 	@ParameterizedTest(name = "{index}: {0}")
 	@MethodSource("validationScenarios")
 	fun `should validate health constraints`(
-		name: String,
+		@Suppress("unused") name: String,
 		current: Int,
 		maximum: Int,
 		expectedCount: Int,
@@ -41,7 +41,7 @@ class HealthTest {
 	@ParameterizedTest(name = "{index}: {0}")
 	@MethodSource("healthyCheckScenarios")
 	fun `should verify healthy check`(
-		name: String,
+		@Suppress("unused") name: String,
 		current: Int,
 		maximum: Int,
 		expectedIsHealthy: Boolean,
@@ -53,7 +53,7 @@ class HealthTest {
 	@ParameterizedTest(name = "{index}: {0}")
 	@MethodSource("criticalCheckScenarios")
 	fun `should verify critical check`(
-		name: String,
+		@Suppress("unused") name: String,
 		current: Int,
 		maximum: Int,
 		expectedIsCritical: Boolean,
@@ -65,7 +65,7 @@ class HealthTest {
 	@ParameterizedTest(name = "{index}: {0}")
 	@MethodSource("recoveryPercentageScenarios")
 	fun `should verify recovery percentage calculation`(
-		name: String,
+		@Suppress("unused") name: String,
 		current: Int,
 		maximum: Int,
 		expectedPercentage: Int,
@@ -77,7 +77,7 @@ class HealthTest {
 	@ParameterizedTest(name = "{index}: {0}")
 	@MethodSource("healingScenarios")
 	fun `should verify healing logic`(
-		name: String,
+		@Suppress("unused") name: String,
 		initialCurrent: Int,
 		maximum: Int,
 		healAmount: Int,
@@ -97,7 +97,7 @@ class HealthTest {
 	@ParameterizedTest(name = "{index}: {0}")
 	@MethodSource("damageScenarios")
 	fun `should verify damage logic`(
-		name: String,
+		@Suppress("unused") name: String,
 		initialCurrent: Int,
 		maximum: Int,
 		damageAmount: Int,
