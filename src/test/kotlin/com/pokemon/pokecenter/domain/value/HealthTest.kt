@@ -49,6 +49,18 @@ class HealthTest {
 		assertEquals(expectedIsHealthy, health.isHealthy)
 	}
 
+	@ParameterizedTest(name = "{index}: {0}")
+	@MethodSource("criticalCheckScenarios")
+	fun `should verify critical check`(
+		name: String,
+		current: Int,
+		maximum: Int,
+		expectedIsCritical: Boolean,
+	) {
+		val health = Health(current = current, maximum = maximum)
+		assertEquals(expectedIsCritical, health.isCritical)
+	}
+
 	@Test
 	fun `should cover data class generated methods`() {
 		val h1 = Health(50, 100)
@@ -72,11 +84,11 @@ class HealthTest {
 		val expectedMessages: List<String> = emptyList(),
 	)
 
-	private data class HealthyCheckScenario(
+	private data class HealthConditionCheckScenario(
 		val name: String,
 		val current: Int,
 		val maximum: Int,
-		val expectedIsHealthy: Boolean,
+		val expected: Boolean,
 	)
 
 	companion object {
@@ -139,20 +151,45 @@ class HealthTest {
 		@JvmStatic
 		fun healthyCheckScenarios(): Stream<Arguments> =
 			listOf(
-				HealthyCheckScenario(
+				HealthConditionCheckScenario(
 					name = "Unhealthy when current health is less than maximum",
 					current = 90,
 					maximum = 100,
-					expectedIsHealthy = false,
+					expected = false,
 				),
-				HealthyCheckScenario(
+				HealthConditionCheckScenario(
 					name = "Healthy when current health equals maximum",
 					current = 100,
 					maximum = 100,
-					expectedIsHealthy = true,
+					expected = true,
 				),
 			).map {
-				Arguments.of(it.name, it.current, it.maximum, it.expectedIsHealthy)
+				Arguments.of(it.name, it.current, it.maximum, it.expected)
+			}.stream()
+
+		@JvmStatic
+		fun criticalCheckScenarios(): Stream<Arguments> =
+			listOf(
+				HealthConditionCheckScenario(
+					name = "Critical when current health is below 25",
+					current = 24,
+					maximum = 100,
+					expected = true,
+				),
+				HealthConditionCheckScenario(
+					name = "Not critical when current health is exactly 25",
+					current = 25,
+					maximum = 100,
+					expected = false,
+				),
+				HealthConditionCheckScenario(
+					name = "Not critical when current health is above 25",
+					current = 26,
+					maximum = 100,
+					expected = false,
+				),
+			).map {
+				Arguments.of(it.name, it.current, it.maximum, it.expected)
 			}.stream()
 	}
 }

@@ -13,4 +13,7 @@ data class Health(
 ) {
 	val isHealthy: Boolean
 		get() = current == maximum
+
+	val isCritical: Boolean
+		get() = current < 25
 }
