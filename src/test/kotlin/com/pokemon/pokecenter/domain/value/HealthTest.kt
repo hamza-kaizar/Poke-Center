@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Assertions.assertNotEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertAll
+import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
@@ -73,6 +74,26 @@ class HealthTest {
 		assertEquals(expectedPercentage, health.recoveryPercentage)
 	}
 
+	@ParameterizedTest(name = "{index}: {0}")
+	@MethodSource("healingScenarios")
+	fun `should verify healing logic`(
+		name: String,
+		initialCurrent: Int,
+		maximum: Int,
+		healAmount: Int,
+		expectedCurrent: Int,
+		expectException: String,
+	) {
+		val health = Health(current = initialCurrent, maximum = maximum)
+		if (expectException.isBlank()) {
+			val healedHealth = health.heal(healAmount)
+			assertEquals(expectedCurrent, healedHealth.current)
+		} else {
+			assertThrows<IllegalArgumentException> { health.heal(healAmount) }
+				.apply { assertEquals(expectException, message) }
+		}
+	}
+
 	@Test
 	fun `should cover data class generated methods`() {
 		val h1 = Health(50, 100)
@@ -108,6 +129,15 @@ class HealthTest {
 		val current: Int,
 		val maximum: Int,
 		val expectedPercentage: Int,
+	)
+
+	private data class HealingScenario(
+		val name: String,
+		val initialCurrent: Int,
+		val maximum: Int,
+		val healAmount: Int,
+		val expectedCurrent: Int,
+		val expectException: String,
 	)
 
 	companion object {
@@ -234,6 +264,52 @@ class HealthTest {
 				),
 			).map {
 				Arguments.of(it.name, it.current, it.maximum, it.expectedPercentage)
+			}.stream()
+
+		@JvmStatic
+		fun healingScenarios(): Stream<Arguments> =
+			listOf(
+				HealingScenario(
+					name = "Healing with positive amount should increase current health",
+					initialCurrent = 50,
+					maximum = 100,
+					healAmount = 20,
+					expectedCurrent = 70,
+					expectException = "",
+				),
+				HealingScenario(
+					name = "Healing should not exceed maximum health",
+					initialCurrent = 90,
+					maximum = 100,
+					healAmount = 20,
+					expectedCurrent = 100,
+					expectException = "",
+				),
+				HealingScenario(
+					name = "Healing with zero amount should throw exception",
+					initialCurrent = 50,
+					maximum = 100,
+					healAmount = 0,
+					expectedCurrent = 50,
+					expectException = "Healing amount must be positive",
+				),
+				HealingScenario(
+					name = "Healing with negative amount should throw exception",
+					initialCurrent = 50,
+					maximum = 100,
+					healAmount = -10,
+					expectedCurrent = 50,
+					expectException = "Healing amount must be positive",
+				),
+			).map {
+				Arguments.of(
+					it.name,
+					it.initialCurrent,
+					it.maximum,
+					it.healAmount,
+					it.expectedCurrent,
+					it.expectException,
+				)
 			}.stream()
 	}
 }

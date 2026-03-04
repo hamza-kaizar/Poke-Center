@@ -19,4 +19,10 @@ data class Health(
 
 	val recoveryPercentage: Int
 		get() = (current * 100) / maximum
+
+	fun heal(amount: Int): Health {
+		require(amount > 0) { "Healing amount must be positive" }
+		val newHealth = (current + amount).coerceAtMost(maximum)
+		return copy(current = newHealth)
+	}
 }
