@@ -23,7 +23,7 @@ class PokemonTest {
 
 		// Act
 		val pokemon =
-			Pokemon.create(
+			Pokemon(
 				name = pokemonName,
 				trainerName = trainerName,
 				health = health,
@@ -54,7 +54,7 @@ class PokemonTest {
 
 		// Act
 		val pokemon =
-			Pokemon.create(
+			Pokemon(
 				name = pokemonName,
 				trainerName = trainerName,
 				health = health,
@@ -81,7 +81,7 @@ class PokemonTest {
 
 		// Act
 		val pokemon =
-			Pokemon.create(
+			Pokemon(
 				name = pokemonName,
 				trainerName = trainerName,
 				health = health,
@@ -108,7 +108,7 @@ class PokemonTest {
 
 		// Act
 		val pokemon =
-			Pokemon.create(
+			Pokemon(
 				name = pokemonName,
 				trainerName = trainerName,
 				health = health,
@@ -142,7 +142,7 @@ class PokemonTest {
 
 		// Act
 		val pokemon =
-			Pokemon.create(
+			Pokemon(
 				name = pokemonName,
 				trainerName = trainerName,
 				health = health,
