@@ -77,7 +77,7 @@ class PokemonServiceTest {
 		val name = "Charmander"
 		val trainerName = "Ash"
 		val health = Health(70, 100)
-		var pokemon =
+		val pokemon =
 			Pokemon(
 				id = 1,
 				name = name,
@@ -124,5 +124,56 @@ class PokemonServiceTest {
 		assertEquals(healedPokemon.health.current, result.health.current)
 		verify { loadPort.loadById(1) }
 		verify { savePort.save(any()) }
+	}
+
+	@Test
+	fun `findById should load and return pokemon`() {
+		val name = "Eevee"
+		val trainerName = "Gary"
+		val health = Health(60, 100)
+		val pokemon =
+			Pokemon(
+				id = 1,
+				name = name,
+				trainerName = trainerName,
+				health = health,
+			)
+
+		every { loadPort.loadById(1) } returns pokemon
+
+		val result = service.findById(1)
+
+		assertEquals(pokemon.name, result.name)
+		assertEquals(pokemon.id, result.id)
+		assertEquals(pokemon.health.current, result.health.current)
+		verify { loadPort.loadById(1) }
+	}
+
+	@Test
+	fun `findAll should load and return all pokemons`() {
+		val pokemon1 =
+			Pokemon(
+				id = 1,
+				name = "Pidgey",
+				trainerName = "Ash",
+				health = Health(50, 100),
+			)
+		val pokemon2 =
+			Pokemon(
+				id = 2,
+				name = "Rattata",
+				trainerName = "Ash",
+				health = Health(40, 100),
+			)
+		val allPokemon = listOf(pokemon1, pokemon2)
+
+		every { loadPort.loadAll() } returns allPokemon
+
+		val result = service.findAll()
+
+		assertEquals(2, result.size)
+		assertEquals(pokemon1.name, result[0].name)
+		assertEquals(pokemon2.name, result[1].name)
+		verify { loadPort.loadAll() }
 	}
 }

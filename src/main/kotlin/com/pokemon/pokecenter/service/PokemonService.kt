@@ -2,6 +2,7 @@ package com.pokemon.pokecenter.service
 
 import com.pokemon.pokecenter.domain.entity.Pokemon
 import com.pokemon.pokecenter.domain.value.Health
+import com.pokemon.pokecenter.port.input.FindPokemonQuery
 import com.pokemon.pokecenter.port.input.HealPokemonUseCase
 import com.pokemon.pokecenter.port.input.RegisterPokemonCommand
 import com.pokemon.pokecenter.port.input.RegisterPokemonUseCase
@@ -14,7 +15,8 @@ class PokemonService(
 	private val loadPokemon: LoadPokemonPort,
 	private val savePokemon: SavePokemonPort,
 ) : RegisterPokemonUseCase,
-	HealPokemonUseCase {
+	HealPokemonUseCase,
+	FindPokemonQuery {
 	override fun register(command: RegisterPokemonCommand): Pokemon {
 		val health = Health(current = command.currentHealth, maximum = command.maximumHealth)
 		val pokemon =
@@ -46,4 +48,8 @@ class PokemonService(
 		val healed = pokemon.completeHealing()
 		return savePokemon.save(healed)
 	}
+
+	override fun findById(id: Long): Pokemon = loadPokemon.loadById(id)
+
+	override fun findAll(): List<Pokemon> = loadPokemon.loadAll()
 }
