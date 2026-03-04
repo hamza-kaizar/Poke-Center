@@ -98,4 +98,31 @@ class PokemonServiceTest {
 		verify { loadPort.loadById(1) }
 		verify { savePort.save(any()) }
 	}
+
+	@Test
+	fun `completeHealing should load, complete healing and save pokemon`() {
+		val name = "Squirtle"
+		val trainerName = "Ash"
+		val health = Health(70, 100)
+		val pokemon =
+			Pokemon(
+				id = 1,
+				name = name,
+				trainerName = trainerName,
+				health = health,
+				status = Status.HEALING,
+			)
+		val healedPokemon = pokemon.copy(health = Health(100, 100))
+
+		every { loadPort.loadById(1) } returns pokemon
+		every { savePort.save(any()) } returns healedPokemon
+
+		val result = service.completeHealing(1)
+
+		assertEquals(pokemon.name, result.name)
+		assertEquals(pokemon.id, result.id)
+		assertEquals(healedPokemon.health.current, result.health.current)
+		verify { loadPort.loadById(1) }
+		verify { savePort.save(any()) }
+	}
 }

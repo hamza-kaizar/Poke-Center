@@ -40,4 +40,10 @@ class PokemonService(
 		val healed = pokemon.applyHealing(amount)
 		return savePokemon.save(healed)
 	}
+
+	override fun completeHealing(pokemonId: Long): Pokemon {
+		val pokemon = loadPokemon.loadById(pokemonId)
+		val healed = pokemon.completeHealing()
+		return savePokemon.save(healed)
+	}
 }

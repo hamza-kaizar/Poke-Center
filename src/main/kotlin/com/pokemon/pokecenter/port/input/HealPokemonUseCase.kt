@@ -9,4 +9,6 @@ interface HealPokemonUseCase {
 		pokemonId: Long,
 		amount: Int,
 	): Pokemon
+
+	fun completeHealing(pokemonId: Long): Pokemon
 }
