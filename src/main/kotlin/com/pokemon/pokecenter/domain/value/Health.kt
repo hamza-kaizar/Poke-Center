@@ -16,4 +16,7 @@ data class Health(
 
 	val isCritical: Boolean
 		get() = current < 25
+
+	val recoveryPercentage: Int
+		get() = (current * 100) / maximum
 }

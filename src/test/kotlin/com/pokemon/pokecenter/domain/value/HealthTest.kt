@@ -61,6 +61,18 @@ class HealthTest {
 		assertEquals(expectedIsCritical, health.isCritical)
 	}
 
+	@ParameterizedTest(name = "{index}: {0}")
+	@MethodSource("recoveryPercentageScenarios")
+	fun `should verify recovery percentage calculation`(
+		name: String,
+		current: Int,
+		maximum: Int,
+		expectedPercentage: Int,
+	) {
+		val health = Health(current = current, maximum = maximum)
+		assertEquals(expectedPercentage, health.recoveryPercentage)
+	}
+
 	@Test
 	fun `should cover data class generated methods`() {
 		val h1 = Health(50, 100)
@@ -89,6 +101,13 @@ class HealthTest {
 		val current: Int,
 		val maximum: Int,
 		val expected: Boolean,
+	)
+
+	private data class RecoveryPercentageScenario(
+		val name: String,
+		val current: Int,
+		val maximum: Int,
+		val expectedPercentage: Int,
 	)
 
 	companion object {
@@ -190,6 +209,31 @@ class HealthTest {
 				),
 			).map {
 				Arguments.of(it.name, it.current, it.maximum, it.expected)
+			}.stream()
+
+		@JvmStatic
+		fun recoveryPercentageScenarios(): Stream<Arguments> =
+			listOf(
+				RecoveryPercentageScenario(
+					name = "0% recovery when current health is 0",
+					current = 0,
+					maximum = 100,
+					expectedPercentage = 0,
+				),
+				RecoveryPercentageScenario(
+					name = "100% recovery when current health equals maximum",
+					current = 100,
+					maximum = 100,
+					expectedPercentage = 100,
+				),
+				RecoveryPercentageScenario(
+					name = "33% recovery when not fully recovered (integer division)",
+					current = 1,
+					maximum = 3,
+					expectedPercentage = 33,
+				),
+			).map {
+				Arguments.of(it.name, it.current, it.maximum, it.expectedPercentage)
 			}.stream()
 	}
 }
