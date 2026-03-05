@@ -32,6 +32,7 @@ dependencies {
 	implementation("tools.jackson.module:jackson-module-kotlin")
 	implementation("org.springframework.kafka:spring-kafka:4.0.3")
 	implementation("org.springframework.cloud:spring-cloud-starter-stream-kafka:5.0.1")
+	implementation("org.springframework.retry:spring-retry:2.0.12")
 	runtimeOnly("com.h2database:h2")
 	testImplementation("org.springframework.boot:spring-boot-starter-data-jpa-test")
 	testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
