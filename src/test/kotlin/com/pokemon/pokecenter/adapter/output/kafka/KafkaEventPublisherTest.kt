@@ -76,9 +76,13 @@ class KafkaEventPublisherTest {
 	}
 
 	@Test
-	fun `should log and not throw when all Kafka retries are exhausted`() {
-		assertDoesNotThrow {
-			publisher.recoverPublishPokemonArrival(RuntimeException("Kafka down"), testEvent)
-		}
+	fun `should handle exceptions gracefully during message sending`() {
+		// Arrange
+		val exception = RuntimeException("Kafka send failed")
+		every { kafkaTemplate.send(any<Message<*>>()) } returns
+			CompletableFuture.failedFuture(exception)
+
+		// Act & Assert
+		assertDoesNotThrow { publisher.publishPokemonArrival(testEvent) }
 	}
 }

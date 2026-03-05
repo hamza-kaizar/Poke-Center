@@ -5,10 +5,9 @@ import com.pokemon.pokecenter.port.output.PublishEventPort
 import org.slf4j.LoggerFactory
 import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.kafka.support.KafkaHeaders
+import org.springframework.kafka.support.SendResult
 import org.springframework.messaging.support.MessageBuilder
-import org.springframework.retry.annotation.Backoff
-import org.springframework.retry.annotation.Recover
-import org.springframework.retry.annotation.Retryable
+import org.springframework.scheduling.annotation.Async
 import org.springframework.stereotype.Component
 
 @Component
@@ -17,11 +16,7 @@ class KafkaEventPublisher(
 ) : PublishEventPort {
 	private val logger = LoggerFactory.getLogger(this::class.java)
 
-	@Retryable(
-		value = [Exception::class],
-		maxAttempts = 3,
-		backoff = Backoff(delay = 500),
-	)
+	@Async
 	override fun publishPokemonArrival(event: PokemonArrivalEvent) {
 		logger.info("Publishing pokemon arrival: ${event.name}")
 		val message =
@@ -31,15 +26,14 @@ class KafkaEventPublisher(
 				.setHeader(KafkaHeaders.KEY, event.pokemonId.toString())
 				.build()
 
-		kafkaTemplate.send(message).get()
-		logger.info("Published pokemon arrival: ${event.eventId}")
-	}
-
-	@Recover
-	fun recoverPublishPokemonArrival(
-		ex: Exception,
-		event: PokemonArrivalEvent,
-	) {
-		logger.error("Failed to publish pokemon arrival after 3 attempts: ${event.eventId}", ex)
+		kafkaTemplate
+			.send(message)
+			.whenComplete { result: SendResult<String, Any>?, ex: Throwable? ->
+				if (ex != null) {
+					logger.error("Failed to publish pokemon arrival: ${event.eventId}", ex)
+				} else if (result != null) {
+					logger.info("Published pokemon arrival: ${event.eventId} in topic ${result.recordMetadata.topic()}")
+				}
+			}
 	}
 }
