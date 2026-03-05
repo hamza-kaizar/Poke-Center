@@ -1,6 +1,7 @@
 package com.pokemon.pokecenter.adapter.output.kafka
 
 import com.pokemon.pokecenter.domain.event.PokemonArrivalEvent
+import com.pokemon.pokecenter.domain.event.PokemonHealStartEvent
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
@@ -17,13 +18,20 @@ class KafkaEventPublisherTest {
 	private val kafkaTemplate = mockk<KafkaTemplate<String, Any>>()
 	private val publisher = KafkaEventPublisher(kafkaTemplate)
 
-	private val testEvent =
+	private val testArrivalEvent =
 		PokemonArrivalEvent(
 			pokemonId = 1L,
 			pokemonName = "Pikachu",
 			trainerName = "Ash",
 			initialHealth = 50,
 			maximumHealth = 100,
+		)
+
+	private val testHealStartEvent =
+		PokemonHealStartEvent(
+			pokemonId = 1L,
+			pokemonName = "Pikachu",
+			healthAtStart = 50,
 		)
 
 	@Test
@@ -34,7 +42,7 @@ class KafkaEventPublisherTest {
 			CompletableFuture.completedFuture(mockk())
 
 		// Act
-		publisher.publishPokemonArrival(testEvent)
+		publisher.publishPokemonArrival(testArrivalEvent)
 
 		// Assert
 		assertEquals(
@@ -52,11 +60,11 @@ class KafkaEventPublisherTest {
 			CompletableFuture.completedFuture(mockk())
 
 		// Act
-		publisher.publishPokemonArrival(testEvent)
+		publisher.publishPokemonArrival(testArrivalEvent)
 
 		// Assert
 		assertEquals(
-			testEvent.pokemonId.toString(),
+			testArrivalEvent.pokemonId.toString(),
 			messageSlot.captured.headers[KafkaHeaders.KEY],
 		)
 	}
@@ -69,10 +77,10 @@ class KafkaEventPublisherTest {
 			CompletableFuture.completedFuture(mockk())
 
 		// Act
-		publisher.publishPokemonArrival(testEvent)
+		publisher.publishPokemonArrival(testArrivalEvent)
 
 		// Assert
-		assertEquals(testEvent, messageSlot.captured.payload)
+		assertEquals(testArrivalEvent, messageSlot.captured.payload)
 	}
 
 	@Test
@@ -83,6 +91,26 @@ class KafkaEventPublisherTest {
 			CompletableFuture.failedFuture(exception)
 
 		// Act & Assert
-		assertDoesNotThrow { publisher.publishPokemonArrival(testEvent) }
+		assertDoesNotThrow { publisher.publishPokemonArrival(testArrivalEvent) }
+	}
+
+	@Test
+	fun `should send message to pokemon healing topic when publishing heal start event`() {
+		// Arrange
+		val messageSlot = slot<Message<*>>()
+		every { kafkaTemplate.send(capture(messageSlot)) } returns
+			CompletableFuture.completedFuture(mockk())
+
+		// Act
+		publisher.publishPokemonHealStart(testHealStartEvent)
+
+		// Assert
+		assertEquals(
+			"pokemon.healing",
+			messageSlot.captured.headers[KafkaHeaders.TOPIC],
+		)
+		verify(exactly = 1) {
+			kafkaTemplate.send(any<Message<*>>())
+		}
 	}
 }

@@ -66,6 +66,7 @@ class PokemonServiceTest {
 
 		every { loadPort.loadById(1) } returns pokemon
 		every { savePort.save(any()) } returns healingPokemon
+		every { publishEventPort.publishPokemonHealStart(any()) } returns Unit
 
 		val result = service.startHealing(1)
 
@@ -74,6 +75,7 @@ class PokemonServiceTest {
 		assertEquals(Status.HEALING, result.status)
 		verify { loadPort.loadById(1) }
 		verify { savePort.save(any()) }
+		verify { publishEventPort.publishPokemonHealStart(any()) }
 	}
 
 	@Test

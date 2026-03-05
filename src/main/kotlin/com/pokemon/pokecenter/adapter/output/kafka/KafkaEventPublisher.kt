@@ -1,6 +1,8 @@
 package com.pokemon.pokecenter.adapter.output.kafka
 
+import com.pokemon.pokecenter.domain.event.DomainEvent
 import com.pokemon.pokecenter.domain.event.PokemonArrivalEvent
+import com.pokemon.pokecenter.domain.event.PokemonHealStartEvent
 import com.pokemon.pokecenter.port.output.PublishEventPort
 import org.slf4j.LoggerFactory
 import org.springframework.kafka.core.KafkaTemplate
@@ -9,6 +11,7 @@ import org.springframework.kafka.support.SendResult
 import org.springframework.messaging.support.MessageBuilder
 import org.springframework.scheduling.annotation.Async
 import org.springframework.stereotype.Component
+import java.util.concurrent.CompletableFuture
 
 @Component
 class KafkaEventPublisher(
@@ -17,22 +20,32 @@ class KafkaEventPublisher(
 	private val logger = LoggerFactory.getLogger(this::class.java)
 
 	@Async
-	override fun publishPokemonArrival(event: PokemonArrivalEvent) {
-		logger.info("Publishing pokemon arrival: ${event.pokemonName}")
+	override fun publishPokemonArrival(event: PokemonArrivalEvent) = publishEvent(event, "pokemon.arrivals", event.pokemonId.toString())
+
+	@Async
+	override fun publishPokemonHealStart(event: PokemonHealStartEvent) = publishEvent(event, "pokemon.healing", event.pokemonId.toString())
+
+	fun publishEvent(
+		event: DomainEvent,
+		topic: String,
+		key: String,
+	) {
+		logger.info("Publishing: $event")
+
 		val message =
 			MessageBuilder
 				.withPayload(event)
-				.setHeader(KafkaHeaders.TOPIC, "pokemon.arrivals")
-				.setHeader(KafkaHeaders.KEY, event.pokemonId.toString())
+				.setHeader(KafkaHeaders.TOPIC, topic)
+				.setHeader(KafkaHeaders.KEY, key)
 				.build()
 
 		kafkaTemplate
 			.send(message)
 			.whenComplete { result: SendResult<String, Any>?, ex: Throwable? ->
 				if (ex != null) {
-					logger.error("Failed to publish pokemon arrival: ${event.eventId}", ex)
+					logger.error("Failed to publish $topic: ${event.eventId}", ex)
 				} else if (result != null) {
-					logger.info("Published pokemon arrival: ${event.eventId} in topic ${result.recordMetadata.topic()}")
+					logger.info("Published $topic: ${event.eventId}")
 				}
 			}
 	}

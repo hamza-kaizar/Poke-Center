@@ -2,6 +2,7 @@ package com.pokemon.pokecenter.service
 
 import com.pokemon.pokecenter.domain.entity.Pokemon
 import com.pokemon.pokecenter.domain.event.PokemonArrivalEvent
+import com.pokemon.pokecenter.domain.event.PokemonHealStartEvent
 import com.pokemon.pokecenter.domain.value.Health
 import com.pokemon.pokecenter.port.input.FindPokemonQuery
 import com.pokemon.pokecenter.port.input.HealPokemonUseCase
@@ -38,7 +39,11 @@ class PokemonService(
 	override fun startHealing(pokemonId: Long): Pokemon {
 		val pokemon = loadPokemon.loadById(pokemonId)
 		val healing = pokemon.startHealing()
-		return savePokemon.save(healing)
+
+		val saved = savePokemon.save(healing)
+		publishEventPort.publishPokemonHealStart(PokemonHealStartEvent.from(saved))
+
+		return saved
 	}
 
 	override fun applyHealing(
