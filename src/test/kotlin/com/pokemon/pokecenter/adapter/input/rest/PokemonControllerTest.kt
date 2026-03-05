@@ -4,6 +4,7 @@ import com.pokemon.pokecenter.domain.constant.Status
 import com.pokemon.pokecenter.domain.entity.Pokemon
 import com.pokemon.pokecenter.domain.value.Health
 import com.pokemon.pokecenter.port.input.FindPokemonQuery
+import com.pokemon.pokecenter.port.input.HealPokemonUseCase
 import com.pokemon.pokecenter.port.input.RegisterPokemonCommand
 import com.pokemon.pokecenter.port.input.RegisterPokemonUseCase
 import org.junit.jupiter.api.Test
@@ -30,6 +31,9 @@ class PokemonControllerTest(
 
 	@MockitoBean
 	private lateinit var findPokemon: FindPokemonQuery
+
+	@MockitoBean
+	private lateinit var healPokemon: HealPokemonUseCase
 
 	private val testPokemon =
 		Pokemon(
@@ -124,5 +128,32 @@ class PokemonControllerTest(
 		}
 
 		verify(findPokemon, times(1)).findAll()
+	}
+
+	@Test
+	fun `POST heal start should transition pokemon to healing status`() {
+		val healingPokemon = testPokemon.copy(status = Status.HEALING)
+
+		doReturn(healingPokemon).`when`(healPokemon).startHealing(1)
+
+		mockMvc.post("/api/pokemon/1/heal/start").andExpect {
+			status { isOk() }
+			jsonPath("$.status") { value("HEALING") }
+		}
+
+		verify(healPokemon, times(1)).startHealing(1)
+	}
+
+	@Test
+	fun `POST start heal should return 400 when start healing fails`() {
+		`when`(healPokemon.startHealing(999L)).thenThrow(IllegalStateException("Pokemon not found"))
+
+		mockMvc
+			.post("/api/pokemon/999/heal/start") {
+				contentType = MediaType.APPLICATION_JSON
+				content = """{"amount": 10}"""
+			}.andExpect {
+				status { isBadRequest() }
+			}
 	}
 }

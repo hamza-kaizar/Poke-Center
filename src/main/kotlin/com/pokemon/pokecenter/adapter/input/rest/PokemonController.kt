@@ -3,6 +3,7 @@ package com.pokemon.pokecenter.adapter.input.rest
 import com.pokemon.pokecenter.adapter.input.rest.dto.PokemonResponse
 import com.pokemon.pokecenter.adapter.input.rest.dto.RegisterPokemonRequest
 import com.pokemon.pokecenter.port.input.FindPokemonQuery
+import com.pokemon.pokecenter.port.input.HealPokemonUseCase
 import com.pokemon.pokecenter.port.input.RegisterPokemonCommand
 import com.pokemon.pokecenter.port.input.RegisterPokemonUseCase
 import org.springframework.http.HttpStatus
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.RestController
 class PokemonController(
 	private val registerPokemon: RegisterPokemonUseCase,
 	private val findPokemon: FindPokemonQuery,
+	private val healPokemon: HealPokemonUseCase,
 ) {
 	@PostMapping
 	fun register(
@@ -53,4 +55,15 @@ class PokemonController(
 		val allPokemon = findPokemon.findAll()
 		return ResponseEntity.ok(allPokemon.map { PokemonResponse.fromDomain(it) })
 	}
+
+	@PostMapping("/{id}/heal/start")
+	fun startHealing(
+		@PathVariable id: Long,
+	): ResponseEntity<PokemonResponse> =
+		try {
+			val healing = healPokemon.startHealing(id)
+			ResponseEntity.ok(PokemonResponse.fromDomain(healing))
+		} catch (e: Exception) {
+			ResponseEntity.badRequest().build()
+		}
 }
