@@ -1,12 +1,14 @@
 package com.pokemon.pokecenter.service
 
 import com.pokemon.pokecenter.domain.entity.Pokemon
+import com.pokemon.pokecenter.domain.event.PokemonArrivalEvent
 import com.pokemon.pokecenter.domain.value.Health
 import com.pokemon.pokecenter.port.input.FindPokemonQuery
 import com.pokemon.pokecenter.port.input.HealPokemonUseCase
 import com.pokemon.pokecenter.port.input.RegisterPokemonCommand
 import com.pokemon.pokecenter.port.input.RegisterPokemonUseCase
 import com.pokemon.pokecenter.port.output.LoadPokemonPort
+import com.pokemon.pokecenter.port.output.PublishEventPort
 import com.pokemon.pokecenter.port.output.SavePokemonPort
 import org.springframework.stereotype.Service
 
@@ -14,6 +16,7 @@ import org.springframework.stereotype.Service
 class PokemonService(
 	private val loadPokemon: LoadPokemonPort,
 	private val savePokemon: SavePokemonPort,
+	private val publishEventPort: PublishEventPort,
 ) : RegisterPokemonUseCase,
 	HealPokemonUseCase,
 	FindPokemonQuery {
@@ -25,7 +28,11 @@ class PokemonService(
 				trainerName = command.trainerName,
 				health = health,
 			)
-		return savePokemon.save(pokemon)
+
+		val saved = savePokemon.save(pokemon)
+		publishEventPort.publishPokemonArrival(PokemonArrivalEvent.from(saved))
+
+		return saved
 	}
 
 	override fun startHealing(pokemonId: Long): Pokemon {

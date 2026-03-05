@@ -5,6 +5,7 @@ import com.pokemon.pokecenter.domain.entity.Pokemon
 import com.pokemon.pokecenter.domain.value.Health
 import com.pokemon.pokecenter.port.input.RegisterPokemonCommand
 import com.pokemon.pokecenter.port.output.LoadPokemonPort
+import com.pokemon.pokecenter.port.output.PublishEventPort
 import com.pokemon.pokecenter.port.output.SavePokemonPort
 import io.mockk.every
 import io.mockk.mockk
@@ -15,7 +16,8 @@ import kotlin.test.Test
 class PokemonServiceTest {
 	private val loadPort = mockk<LoadPokemonPort>()
 	private val savePort = mockk<SavePokemonPort>()
-	private val service = PokemonService(loadPort, savePort)
+	private val publishEventPort = mockk<PublishEventPort>()
+	private val service = PokemonService(loadPort, savePort, publishEventPort)
 
 	@Test
 	fun `register should create and save pokemon`() {
@@ -38,12 +40,14 @@ class PokemonServiceTest {
 			)
 
 		every { savePort.save(any()) } returns saved
+		every { publishEventPort.publishPokemonArrival(any()) } returns Unit
 
 		val result = service.register(command)
 
 		assertEquals(name, result.name)
 		assertEquals(saved.id, result.id)
 		verify { savePort.save(any()) }
+		verify { publishEventPort.publishPokemonArrival(any()) }
 	}
 
 	@Test
