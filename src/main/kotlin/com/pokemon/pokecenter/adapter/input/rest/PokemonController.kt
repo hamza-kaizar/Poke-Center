@@ -1,5 +1,6 @@
 package com.pokemon.pokecenter.adapter.input.rest
 
+import com.pokemon.pokecenter.adapter.input.rest.dto.HealPokemonRequest
 import com.pokemon.pokecenter.adapter.input.rest.dto.PokemonResponse
 import com.pokemon.pokecenter.adapter.input.rest.dto.RegisterPokemonRequest
 import com.pokemon.pokecenter.port.input.FindPokemonQuery
@@ -63,6 +64,18 @@ class PokemonController(
 		try {
 			val healing = healPokemon.startHealing(id)
 			ResponseEntity.ok(PokemonResponse.fromDomain(healing))
+		} catch (e: Exception) {
+			ResponseEntity.badRequest().build()
+		}
+
+	@PostMapping("/{id}/heal/apply")
+	fun heal(
+		@PathVariable id: Long,
+		@RequestBody request: HealPokemonRequest,
+	): ResponseEntity<PokemonResponse> =
+		try {
+			val healed = healPokemon.applyHealing(id, request.amount)
+			ResponseEntity.ok(PokemonResponse.fromDomain(healed))
 		} catch (e: Exception) {
 			ResponseEntity.badRequest().build()
 		}

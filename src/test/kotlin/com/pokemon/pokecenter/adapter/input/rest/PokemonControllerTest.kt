@@ -156,4 +156,36 @@ class PokemonControllerTest(
 				status { isBadRequest() }
 			}
 	}
+
+	@Test
+	fun `POST apply heal should apply healing and return updated pokemon`() {
+		val healedPokemon = testPokemon.copy(health = Health(95, 100))
+
+		doReturn(healedPokemon).`when`(healPokemon).applyHealing(1, 15)
+
+		mockMvc
+			.post("/api/pokemon/1/heal/apply") {
+				contentType = MediaType.APPLICATION_JSON
+				content = """{"amount": 15}"""
+			}.andExpect {
+				status { isOk() }
+				jsonPath("$.currentHealth") { value(95) }
+				jsonPath("$.maximumHealth") { value(100) }
+			}
+
+		verify(healPokemon, times(1)).applyHealing(1, 15)
+	}
+
+	@Test
+	fun `POST apply heal should return 400 when healing fails`() {
+		`when`(healPokemon.applyHealing(999L, 10)).thenThrow(IllegalStateException("Pokemon not found"))
+
+		mockMvc
+			.post("/api/pokemon/999/heal/apply") {
+				contentType = MediaType.APPLICATION_JSON
+				content = """{"amount": 10}"""
+			}.andExpect {
+				status { isBadRequest() }
+			}
+	}
 }
