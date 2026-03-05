@@ -55,21 +55,52 @@ src/main/kotlin/com/pokemon/pokecenter/
 ### Prerequisites
 - JDK 25+
 - Gradle 8.x
+- Docker (for running Kafka locally)
 
 ### Build & Run
 
 ```bash
-# Build the project
+# 1. Start Kafka and Zookeeper infrastructure
+docker compose up -d
+
+# 2. Build the project
 ./gradlew build
 
-# Run tests
+# 3. Run tests
 ./gradlew test
 
-# Start the application
+# 4. Start the application
 ./gradlew bootRun
 ```
 
 The API will be available at `http://localhost:8080/api/pokemon`
+
+## Local Infrastructure
+
+Kafka and Zookeeper run via Docker Compose for local development:
+
+| Service    | Image                            | Port  | Purpose                   |
+|------------|----------------------------------|-------|---------------------------|
+| Kafka      | confluentinc/cp-kafka:7.6.0      | 9092  | Message broker             |
+| Zookeeper  | confluentinc/cp-zookeeper:7.6.0  | 2181  | Kafka cluster coordinator  |
+
+### Infrastructure Commands
+
+```bash
+# Start all services in background
+docker compose up -d
+
+# View running containers and health status
+docker compose ps
+
+# Stream Kafka logs
+docker compose logs -f kafka
+
+# Stop and remove containers
+docker compose down
+```
+
+**Note**: The application connects to Kafka at `localhost:9092`. Ensure Docker Compose is running before starting `bootRun`. The Kafka container includes a health check that verifies the broker is ready.
 
 ## API Endpoints
 
