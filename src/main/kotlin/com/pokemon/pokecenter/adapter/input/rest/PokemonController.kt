@@ -47,4 +47,10 @@ class PokemonController(
 		} catch (e: NoSuchElementException) {
 			ResponseEntity.notFound().build()
 		}
+
+	@GetMapping
+	fun getAll(): ResponseEntity<List<PokemonResponse>> {
+		val allPokemon = findPokemon.findAll()
+		return ResponseEntity.ok(allPokemon.map { PokemonResponse.fromDomain(it) })
+	}
 }

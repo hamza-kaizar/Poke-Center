@@ -19,6 +19,7 @@ import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.get
 import org.springframework.test.web.servlet.post
 import java.time.LocalDateTime
+import kotlin.collections.emptyList
 
 @WebMvcTest(PokemonController::class)
 class PokemonControllerTest(
@@ -90,5 +91,38 @@ class PokemonControllerTest(
 		mockMvc.get("/api/pokemon/999").andExpect {
 			status { isNotFound() }
 		}
+	}
+
+	@Test
+	fun `GET all should return list of pokemon`() {
+		val pokemonList =
+			listOf(
+				testPokemon,
+				testPokemon.copy(id = 2, name = "Charmander"),
+			)
+
+		doReturn(pokemonList).`when`(findPokemon).findAll()
+
+		mockMvc.get("/api/pokemon").andExpect {
+			status { isOk() }
+			jsonPath("$[0].id") { value(1) }
+			jsonPath("$[0].name") { value("Pikachu") }
+			jsonPath("$[1].id") { value(2) }
+			jsonPath("$[1].name") { value("Charmander") }
+		}
+
+		verify(findPokemon, times(1)).findAll()
+	}
+
+	@Test
+	fun `GET all should return empty list when no pokemon are found`() {
+		doReturn(emptyList<Pokemon>()).`when`(findPokemon).findAll()
+
+		mockMvc.get("/api/pokemon").andExpect {
+			status { isOk() }
+			jsonPath("$.length()") { value(0) }
+		}
+
+		verify(findPokemon, times(1)).findAll()
 	}
 }
