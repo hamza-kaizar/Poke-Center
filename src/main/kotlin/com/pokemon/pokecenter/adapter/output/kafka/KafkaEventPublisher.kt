@@ -3,6 +3,7 @@ package com.pokemon.pokecenter.adapter.output.kafka
 import com.pokemon.pokecenter.domain.event.DomainEvent
 import com.pokemon.pokecenter.domain.event.PokemonArrivalEvent
 import com.pokemon.pokecenter.domain.event.PokemonHealApplyEvent
+import com.pokemon.pokecenter.domain.event.PokemonHealCompleteEvent
 import com.pokemon.pokecenter.domain.event.PokemonHealStartEvent
 import com.pokemon.pokecenter.port.output.PublishEventPort
 import org.slf4j.LoggerFactory
@@ -12,7 +13,6 @@ import org.springframework.kafka.support.SendResult
 import org.springframework.messaging.support.MessageBuilder
 import org.springframework.scheduling.annotation.Async
 import org.springframework.stereotype.Component
-import java.util.concurrent.CompletableFuture
 
 @Component
 class KafkaEventPublisher(
@@ -28,6 +28,10 @@ class KafkaEventPublisher(
 
 	@Async
 	override fun publishPokemonHealApply(event: PokemonHealApplyEvent) = publishEvent(event, "pokemon.healing", event.pokemonId.toString())
+
+	@Async
+	override fun publishPokemonHealComplete(event: PokemonHealCompleteEvent) =
+		publishEvent(event, "pokemon.healed", event.pokemonId.toString())
 
 	fun publishEvent(
 		event: DomainEvent,

@@ -2,6 +2,7 @@ package com.pokemon.pokecenter.port.output
 
 import com.pokemon.pokecenter.domain.event.PokemonArrivalEvent
 import com.pokemon.pokecenter.domain.event.PokemonHealApplyEvent
+import com.pokemon.pokecenter.domain.event.PokemonHealCompleteEvent
 import com.pokemon.pokecenter.domain.event.PokemonHealStartEvent
 
 interface PublishEventPort {
@@ -10,4 +11,6 @@ interface PublishEventPort {
 	fun publishPokemonHealStart(event: PokemonHealStartEvent)
 
 	fun publishPokemonHealApply(event: PokemonHealApplyEvent)
+
+	fun publishPokemonHealComplete(event: PokemonHealCompleteEvent)
 }

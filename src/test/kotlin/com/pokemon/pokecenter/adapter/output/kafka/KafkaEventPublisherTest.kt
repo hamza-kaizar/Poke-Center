@@ -2,6 +2,7 @@ package com.pokemon.pokecenter.adapter.output.kafka
 
 import com.pokemon.pokecenter.domain.event.PokemonArrivalEvent
 import com.pokemon.pokecenter.domain.event.PokemonHealApplyEvent
+import com.pokemon.pokecenter.domain.event.PokemonHealCompleteEvent
 import com.pokemon.pokecenter.domain.event.PokemonHealStartEvent
 import io.mockk.every
 import io.mockk.mockk
@@ -41,6 +42,13 @@ class KafkaEventPublisherTest {
 			pokemonName = "Pikachu",
 			medsApplied = 30,
 			updatedHealth = 80,
+		)
+
+	private val testHealCompleteEvent =
+		PokemonHealCompleteEvent(
+			pokemonId = 1L,
+			pokemonName = "Pikachu",
+			healthAtComplete = 100,
 		)
 
 	@Test
@@ -136,6 +144,26 @@ class KafkaEventPublisherTest {
 		// Assert
 		assertEquals(
 			"pokemon.healing",
+			messageSlot.captured.headers[KafkaHeaders.TOPIC],
+		)
+		verify(exactly = 1) {
+			kafkaTemplate.send(any<Message<*>>())
+		}
+	}
+
+	@Test
+	fun `should send message to pokemon healed topic when publishing heal complete event`() {
+		// Arrange
+		val messageSlot = slot<Message<*>>()
+		every { kafkaTemplate.send(capture(messageSlot)) } returns
+			CompletableFuture.completedFuture(mockk())
+
+		// Act
+		publisher.publishPokemonHealComplete(testHealCompleteEvent)
+
+		// Assert
+		assertEquals(
+			"pokemon.healed",
 			messageSlot.captured.headers[KafkaHeaders.TOPIC],
 		)
 		verify(exactly = 1) {

@@ -3,6 +3,7 @@ package com.pokemon.pokecenter.service
 import com.pokemon.pokecenter.domain.entity.Pokemon
 import com.pokemon.pokecenter.domain.event.PokemonArrivalEvent
 import com.pokemon.pokecenter.domain.event.PokemonHealApplyEvent
+import com.pokemon.pokecenter.domain.event.PokemonHealCompleteEvent
 import com.pokemon.pokecenter.domain.event.PokemonHealStartEvent
 import com.pokemon.pokecenter.domain.value.Health
 import com.pokemon.pokecenter.port.input.FindPokemonQuery
@@ -62,8 +63,12 @@ class PokemonService(
 
 	override fun completeHealing(pokemonId: Long): Pokemon {
 		val pokemon = loadPokemon.loadById(pokemonId)
+
 		val healed = pokemon.completeHealing()
-		return savePokemon.save(healed)
+		val saved = savePokemon.save(healed)
+		publishEventPort.publishPokemonHealComplete(PokemonHealCompleteEvent.from(saved))
+
+		return saved
 	}
 
 	override fun findById(id: Long): Pokemon = loadPokemon.loadById(id)
