@@ -29,26 +29,80 @@ This repository is a learning project to learn some software development concept
 
 ## Architecture
 
+Implements **Hexagonal Architecture (Ports & Adapters)** with clear separation of concerns:
+
 ```
 src/main/kotlin/com/pokemon/pokecenter/
-├── domain/                          # Pure business logic
-│   ├── entity/                      # Pokémon and domain models
-│   ├── value/                       # Health, Status value objects
-│   └── validation/                  # Domain-level validation rules
 │
-├── application/                     # Use case orchestration
-│   └── port/
-│       ├── input/                   # Use cases (RegisterPokemon, HealPokemon, FindPokemon)
-│       └── output/                  # Port interfaces for repositories
+├── domain/                          # Pure business logic (framework-independent)
+│   ├── entity/                      # Pokemon.kt (core domain entity)
+│   ├── event/                       # Domain events
+│   │   ├── DomainEvent.kt           # Base sealed class
+│   │   ├── PokemonArrivalEvent.kt
+│   │   ├── PokemonHealStartEvent.kt
+│   │   ├── PokemonHealApplyEvent.kt
+│   │   └── PokemonHealCompleteEvent.kt
+│   ├── value/                       # Health.kt (value objects)
+│   ├── constant/                    # Status.kt (enum)
+│   └── validation/                  # ValidHealthRatio.kt (custom validators)
 │
-└── adapter/                         # Framework-specific implementation
-    ├── input/rest/                  # HTTP REST controller layer
-    │   ├── PokemonController.kt
-    │   └── dto/                     # Request/response DTOs
-    └── output/persistence/          # JPA persistence adapter
-        ├── PokemonJpaEntity.kt
-        └── PokemonPersistenceAdapter.kt
+├── port/                            # Interfaces (contracts between layers)
+│   ├── input/                       # Use case ports (inbound)
+│   │   ├── RegisterPokemonUseCase.kt
+│   │   ├── HealPokemonUseCase.kt
+│   │   └── FindPokemonQuery.kt
+│   └── output/                      # Dependency ports (outbound)
+│       ├── SavePokemonPort.kt
+│       ├── LoadPokemonPort.kt
+│       └── PublishEventPort.kt
+│
+├── service/                         # Application layer (orchestration)
+│   └── PokemonService.kt            # Core service implementing all input ports
+│
+├── adapter/                         # Framework-specific implementations
+│   ├── input/
+│   │   └── rest/                    # HTTP REST adapter
+│   │       ├── PokemonController.kt # REST endpoints
+│   │       └── dto/                 # Request/response DTOs
+│   └── output/
+│       ├── persistence/             # JPA database adapter
+│       │   ├── PersistencePokemonAdapter.kt
+│       │   ├── entity/
+│       │   │   └── PokemonJpaEntity.kt
+│       │   └── mapper/
+│       │       └── PokemonMapper.kt
+│       ├── kafka/                   # Event publishing adapter
+│       │   └── KafkaEventPublisher.kt (implements PublishEventPort)
+│       └── inmemory/                # Testing adapter
+│           └── InMemoryPokemonAdapter.kt
+│
+└── config/                          # Spring configuration
+    └── KafkaConfiguration.kt        # Kafka beans and listeners
 ```
+
+### Layer Responsibilities
+
+**Domain Layer**: Pure business logic
+- Pokemon entity with business rules
+- Domain events representing state changes
+- Value objects (Health) for type safety
+- Validation rules
+
+**Port Layer**: Contracts between layers
+- Input ports define use cases (RegisterPokemon, HealPokemon, etc.)
+- Output ports define dependencies (persistence, event publishing)
+- Language of the domain (no framework-specific types)
+
+**Application/Service Layer**: Use case orchestration
+- PokemonService implements input ports
+- Coordinates domain logic with output adapters
+- Ensures business rules are enforced
+
+**Adapter Layer**: Framework implementations
+- REST adapter converts HTTP requests to domain commands
+- Persistence adapter maps domain entities to JPA
+- Kafka adapter publishes domain events asynchronously
+- In-memory adapter for testing without dependencies
 
 ## Getting Started
 
@@ -101,6 +155,45 @@ docker compose down
 ```
 
 **Note**: The application connects to Kafka at `localhost:9092`. Ensure Docker Compose is running before starting `bootRun`. The Kafka container includes a health check that verifies the broker is ready.
+
+### Viewing Kafka Events
+
+The application publishes domain events to three Kafka topics. Use these commands to view events in real-time:
+
+#### Pokemon Arrivals (`pokemon.arrivals`)
+When a new Pokémon is registered, a `PokemonArrivalEvent` is published:
+```bash
+docker exec -it $(docker ps -q -f "ancestor=confluentinc/cp-kafka:7.6.0") \
+  kafka-console-consumer \
+  --bootstrap-server localhost:9092 \
+  --topic pokemon.arrivals \
+  --from-beginning \
+  --property print.key=true
+```
+
+#### Healing Progress (`pokemon.healing`)
+When healing starts or is applied, `PokemonHealStartEvent` and `PokemonHealApplyEvent` are published:
+```bash
+docker exec -it $(docker ps -q -f "ancestor=confluentinc/cp-kafka:7.6.0") \
+  kafka-console-consumer \
+  --bootstrap-server localhost:9092 \
+  --topic pokemon.healing \
+  --from-beginning \
+  --property print.key=true
+```
+
+#### Healing Complete (`pokemon.healed`)
+When healing is completed, a `PokemonHealCompleteEvent` is published:
+```bash
+docker exec -it $(docker ps -q -f "ancestor=confluentinc/cp-kafka:7.6.0") \
+  kafka-console-consumer \
+  --bootstrap-server localhost:9092 \
+  --topic pokemon.healed \
+  --from-beginning \
+  --property print.key=true
+```
+
+**Tip**: Open three terminals and run each consumer in parallel to watch all events simultaneously.
 
 ## API Endpoints
 
