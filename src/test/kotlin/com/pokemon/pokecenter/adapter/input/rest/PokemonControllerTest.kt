@@ -3,17 +3,20 @@ package com.pokemon.pokecenter.adapter.input.rest
 import com.pokemon.pokecenter.domain.constant.Status
 import com.pokemon.pokecenter.domain.entity.Pokemon
 import com.pokemon.pokecenter.domain.value.Health
+import com.pokemon.pokecenter.port.input.FindPokemonQuery
 import com.pokemon.pokecenter.port.input.RegisterPokemonCommand
 import com.pokemon.pokecenter.port.input.RegisterPokemonUseCase
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.doReturn
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
+import org.mockito.Mockito.`when`
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest
 import org.springframework.http.MediaType
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.servlet.MockMvc
+import org.springframework.test.web.servlet.get
 import org.springframework.test.web.servlet.post
 import java.time.LocalDateTime
 
@@ -23,6 +26,9 @@ class PokemonControllerTest(
 ) {
 	@MockitoBean
 	private lateinit var registerPokemon: RegisterPokemonUseCase
+
+	@MockitoBean
+	private lateinit var findPokemon: FindPokemonQuery
 
 	private val testPokemon =
 		Pokemon(
@@ -61,5 +67,28 @@ class PokemonControllerTest(
 			}
 
 		verify(registerPokemon, times(1)).register(cmd)
+	}
+
+	@Test
+	fun `GET by id should return pokemon when found`() {
+		doReturn(testPokemon).`when`(findPokemon).findById(1)
+
+		mockMvc.get("/api/pokemon/1").andExpect {
+			status { isOk() }
+			jsonPath("$.id") { value(1) }
+			jsonPath("$.name") { value("Pikachu") }
+			jsonPath("$.trainerName") { value("Ash") }
+		}
+
+		verify(findPokemon, times(1)).findById(1)
+	}
+
+	@Test
+	fun `GET by id should return 404 when pokemon not found`() {
+		`when`(findPokemon.findById(999L)).thenThrow(NoSuchElementException("Pokemon not found"))
+
+		mockMvc.get("/api/pokemon/999").andExpect {
+			status { isNotFound() }
+		}
 	}
 }
