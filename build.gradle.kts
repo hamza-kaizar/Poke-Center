@@ -30,11 +30,15 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-webmvc")
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
 	implementation("tools.jackson.module:jackson-module-kotlin")
+	implementation("org.springframework.kafka:spring-kafka:4.0.3")
+	implementation("org.springframework.cloud:spring-cloud-starter-stream-kafka:5.0.1")
 	runtimeOnly("com.h2database:h2")
 	testImplementation("org.springframework.boot:spring-boot-starter-data-jpa-test")
 	testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
 	testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
 	testImplementation("io.mockk:mockk:1.13.11")
+	testImplementation("org.testcontainers:testcontainers:2.0.3")
+	testImplementation("org.testcontainers:kafka:1.21.4")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
