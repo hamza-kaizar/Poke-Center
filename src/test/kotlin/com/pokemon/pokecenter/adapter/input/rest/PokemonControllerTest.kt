@@ -188,4 +188,32 @@ class PokemonControllerTest(
 				status { isBadRequest() }
 			}
 	}
+
+	@Test
+	fun `POST complete healing should transition pokemon to healed status`() {
+		val healedPokemon = testPokemon.copy(health = Health(100, 100), status = Status.HEALED)
+
+		doReturn(healedPokemon).`when`(healPokemon).completeHealing(1)
+
+		mockMvc.post("/api/pokemon/1/heal/complete").andExpect {
+			status { isOk() }
+			jsonPath("$.status") { value("HEALED") }
+			jsonPath("$.currentHealth") { value(100) }
+		}
+
+		verify(healPokemon, times(1)).completeHealing(1)
+	}
+
+	@Test
+	fun `POST complete heal should return 400 when complete healing fails`() {
+		`when`(healPokemon.completeHealing(999L)).thenThrow(IllegalStateException("Pokemon not found"))
+
+		mockMvc
+			.post("/api/pokemon/999/heal/complete") {
+				contentType = MediaType.APPLICATION_JSON
+				content = """{"amount": 10}"""
+			}.andExpect {
+				status { isBadRequest() }
+			}
+	}
 }

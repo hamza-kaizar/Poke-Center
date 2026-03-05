@@ -79,4 +79,15 @@ class PokemonController(
 		} catch (e: Exception) {
 			ResponseEntity.badRequest().build()
 		}
+
+	@PostMapping("/{id}/heal/complete")
+	fun completeHealing(
+		@PathVariable id: Long,
+	): ResponseEntity<PokemonResponse> =
+		try {
+			val healed = healPokemon.completeHealing(id)
+			ResponseEntity.ok(PokemonResponse.fromDomain(healed))
+		} catch (e: Exception) {
+			ResponseEntity.badRequest().build()
+		}
 }
