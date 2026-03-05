@@ -20,7 +20,7 @@ class KafkaEventPublisherTest {
 	private val testEvent =
 		PokemonArrivalEvent(
 			pokemonId = 1L,
-			name = "Pikachu",
+			pokemonName = "Pikachu",
 			trainerName = "Ash",
 			initialHealth = 50,
 			maximumHealth = 100,

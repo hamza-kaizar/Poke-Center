@@ -6,7 +6,7 @@ import java.util.UUID
 
 data class PokemonArrivalEvent(
 	val pokemonId: Long,
-	val name: String,
+	val pokemonName: String,
 	val trainerName: String,
 	val initialHealth: Int,
 	val maximumHealth: Int,
@@ -17,7 +17,7 @@ data class PokemonArrivalEvent(
 		fun from(pokemon: Pokemon): PokemonArrivalEvent =
 			PokemonArrivalEvent(
 				pokemonId = pokemon.id,
-				name = pokemon.name,
+				pokemonName = pokemon.name,
 				trainerName = pokemon.trainerName,
 				initialHealth = pokemon.health.current,
 				maximumHealth = pokemon.health.maximum,

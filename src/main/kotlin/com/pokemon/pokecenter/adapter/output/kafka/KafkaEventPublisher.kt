@@ -18,7 +18,7 @@ class KafkaEventPublisher(
 
 	@Async
 	override fun publishPokemonArrival(event: PokemonArrivalEvent) {
-		logger.info("Publishing pokemon arrival: ${event.name}")
+		logger.info("Publishing pokemon arrival: ${event.pokemonName}")
 		val message =
 			MessageBuilder
 				.withPayload(event)

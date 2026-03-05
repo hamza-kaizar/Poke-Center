@@ -21,7 +21,7 @@ class PokemonArrivalEventTest {
 
 		val event = PokemonArrivalEvent.from(pokemon)
 
-		assertEquals(pokemon.name, event.name)
+		assertEquals(pokemon.name, event.pokemonName)
 		assertEquals(pokemon.trainerName, event.trainerName)
 		assertEquals(pokemon.health.current, event.initialHealth)
 		assertNotNull(event.eventId)
