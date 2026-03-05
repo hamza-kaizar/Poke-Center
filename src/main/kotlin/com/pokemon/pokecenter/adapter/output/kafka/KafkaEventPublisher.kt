@@ -2,6 +2,7 @@ package com.pokemon.pokecenter.adapter.output.kafka
 
 import com.pokemon.pokecenter.domain.event.DomainEvent
 import com.pokemon.pokecenter.domain.event.PokemonArrivalEvent
+import com.pokemon.pokecenter.domain.event.PokemonHealApplyEvent
 import com.pokemon.pokecenter.domain.event.PokemonHealStartEvent
 import com.pokemon.pokecenter.port.output.PublishEventPort
 import org.slf4j.LoggerFactory
@@ -24,6 +25,9 @@ class KafkaEventPublisher(
 
 	@Async
 	override fun publishPokemonHealStart(event: PokemonHealStartEvent) = publishEvent(event, "pokemon.healing", event.pokemonId.toString())
+
+	@Async
+	override fun publishPokemonHealApply(event: PokemonHealApplyEvent) = publishEvent(event, "pokemon.healing", event.pokemonId.toString())
 
 	fun publishEvent(
 		event: DomainEvent,
